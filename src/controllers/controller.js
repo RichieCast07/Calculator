@@ -17,7 +17,7 @@ class ControladorCargas {
       return;
     }
     
-    this.modelo.agregarCarga(datos.valor, datos.unidad);
+    this.modelo.agregarCarga(datos.valor, datos.unidadCarga, datos.x, datos.y, datos.unidadPos);
     this.actualizarVistaCompleta();
     this.vista.limpiarFormularioCarga();
   }
@@ -45,7 +45,9 @@ class ControladorCargas {
       return;
     }
     
-    const resultado = this.modelo.convertirCarga(datos.valor, datos.origen, datos.destino);
+    // El modelo ya tiene un conversor de unidades de carga, pero para el conversor
+    // de la UI, lo llamamos directamente.
+    const resultado = this.modelo.convertirUnidad(datos.valor, this.modelo.factoresCarga, datos.origen, datos.destino);
     const textoResultado = `${resultado.toExponential(5)} ${datos.destino}`;
     this.vista.mostrarResultadoConversion(textoResultado);
   }

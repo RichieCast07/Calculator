@@ -3,21 +3,27 @@ class ModeloCargas {
     this.cargas = [];
     this.nextId = 0;
     this.factoresCarga = { 'C': 1, 'mC': 1e-3, 'μC': 1e-6, 'nC': 1e-9, 'pC': 1e-12 };
+    this.factoresDistancia = { 'm': 1, 'cm': 1e-2, 'mm': 1e-3 };
   }
 
-  convertirCarga(valor, origen, destino) {
-    if (!this.factoresCarga[origen] || !this.factoresCarga[destino]) return 0;
-    const valorEnCoulombs = valor * this.factoresCarga[origen];
-    return valorEnCoulombs / this.factoresCarga[destino];
+  convertirUnidad(valor, factores, origen, destino) {
+    if (!factores[origen] || !factores[destino]) return 0;
+    const valorEnBase = valor * factores[origen];
+    return valorEnBase / factores[destino];
   }
 
-  agregarCarga(valor, unidad) {
+  agregarCarga(valor, unidadCarga, x, y, unidadPos) {
     const nuevaCarga = {
       id: this.nextId++,
       valorOriginal: valor,
-      unidadOriginal: unidad,
-      valorEnCoulombs: this.convertirCarga(valor, unidad, 'C'),
-      isSelected: false, 
+      unidadOriginal: unidadCarga,
+      valorEnCoulombs: this.convertirUnidad(valor, this.factoresCarga, unidadCarga, 'C'),
+      xOriginal: x,
+      yOriginal: y,
+      unidadPosOriginal: unidadPos,
+      xEnMetros: this.convertirUnidad(x, this.factoresDistancia, unidadPos, 'm'),
+      yEnMetros: this.convertirUnidad(y, this.factoresDistancia, unidadPos, 'm'),
+      isSelected: false,
     };
     this.cargas.push(nuevaCarga);
   }
@@ -44,15 +50,12 @@ class ModeloCargas {
   
   _calcularEstadisticas(cargasArray) {
     if (cargasArray.length === 0) {
-      return { totalCargas: 0, cargaNeta: 0, positivas: 0, negativas: 0 };
+      return { totalCargas: 0, cargaNeta: 0 };
     }
     const cargaNeta = cargasArray.reduce((sum, c) => sum + c.valorEnCoulombs, 0);
-    const positivas = cargasArray.filter(c => c.valorEnCoulombs > 0).length;
     return {
       totalCargas: cargasArray.length,
       cargaNeta,
-      positivas,
-      negativas: cargasArray.length - positivas,
     };
   }
 

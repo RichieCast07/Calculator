@@ -3,6 +3,9 @@ class VistaCargas {
     this.elementos = {
       nuevaCarga: document.getElementById('nuevaCarga'),
       unidadCarga: document.getElementById('unidadCarga'),
+      posX: document.getElementById('posX'),
+      posY: document.getElementById('posY'),
+      unidadPosicion: document.getElementById('unidadPosicion'),
       agregarCarga: document.getElementById('agregarCarga'),
       listaCargas: document.getElementById('listaCargas'),
       limpiarTodo: document.getElementById('limpiarTodo'),
@@ -18,7 +21,10 @@ class VistaCargas {
 
   obtenerDatosCarga = () => ({
     valor: parseFloat(this.elementos.nuevaCarga.value) || 0,
-    unidad: this.elementos.unidadCarga.value,
+    unidadCarga: this.elementos.unidadCarga.value,
+    x: parseFloat(this.elementos.posX.value) || 0,
+    y: parseFloat(this.elementos.posY.value) || 0,
+    unidadPos: this.elementos.unidadPosicion.value,
   });
 
   obtenerDatosConversion = () => ({
@@ -43,7 +49,6 @@ class VistaCargas {
     cargas.forEach((carga) => {
       const item = document.createElement('div');
       item.className = 'charge-item flex justify-between items-center p-2 bg-gray-50 rounded-lg border';
-      
       const signoClase = carga.valorOriginal > 0 ? 'text-red-600' : 'text-blue-600';
       
       const checkbox = document.createElement('input');
@@ -55,8 +60,8 @@ class VistaCargas {
       const infoDiv = document.createElement('div');
       infoDiv.className = 'flex-grow ml-3';
       infoDiv.innerHTML = `
-        <span class="font-semibold ${signoClase}">${carga.valorOriginal} ${carga.unidadOriginal}</span>
-        <span class="text-gray-500 text-xs ml-2">(${carga.valorEnCoulombs.toExponential(2)} C)</span>
+        <div><span class="font-semibold ${signoClase}">${carga.valorOriginal} ${carga.unidadOriginal}</span></div>
+        <div class="text-gray-500 text-xs">@ (${carga.xOriginal}, ${carga.yOriginal}) ${carga.unidadPosOriginal}</div>
       `;
       
       const botonEliminar = document.createElement('button');
@@ -124,8 +129,11 @@ class VistaCargas {
 
   bindAgregarCarga(handler) {
     this.elementos.agregarCarga.addEventListener('click', handler);
-    this.elementos.nuevaCarga.addEventListener('keypress', (e) => {
+    const inputs = [this.elementos.nuevaCarga, this.elementos.posX, this.elementos.posY];
+    inputs.forEach(input => {
+      input.addEventListener('keypress', e => {
         if (e.key === 'Enter') handler();
+      });
     });
   }
 
