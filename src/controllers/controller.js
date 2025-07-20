@@ -5,7 +5,7 @@ class ControladorCargas {
     
     this.vista.bindAgregarCarga(this.handleAgregarCarga);
     this.vista.bindLimpiarTodo(this.handleLimpiarTodo);
-    this.vista.bindConversion(this.handleConversion);
+    this.vista.bindConversion(this.handleConversion); 
 
     this.actualizarVistaCompleta();
   }
@@ -17,7 +17,7 @@ class ControladorCargas {
       return;
     }
     
-    this.modelo.agregarCarga(datos.valor, datos.unidadCarga, datos.x, datos.y, datos.unidadPos);
+    this.modelo.agregarCarga(datos.valor, datos.unidadCarga, datos.x, datos.y, datos.z, datos.unidadPos);
     this.actualizarVistaCompleta();
     this.vista.limpiarFormularioCarga();
   }
@@ -38,6 +38,12 @@ class ControladorCargas {
     this.vista.mostrarNotificacion('Se han eliminado todas las cargas.', 'info');
   }
 
+  handleCalcularCampo = () => {
+    const puntoDeCalculo = this.vista.obtenerPuntoDeCalculo();
+    const resultados = this.modelo.calcularCampoElectricoResultante(puntoDeCalculo);
+    this.vista.mostrarResultadosCampo(resultados);
+  }
+  
   handleConversion = () => {
     const datos = this.vista.obtenerDatosConversion();
     if (isNaN(datos.valor)) {
@@ -45,8 +51,6 @@ class ControladorCargas {
       return;
     }
     
-    // El modelo ya tiene un conversor de unidades de carga, pero para el conversor
-    // de la UI, lo llamamos directamente.
     const resultado = this.modelo.convertirUnidad(datos.valor, this.modelo.factoresCarga, datos.origen, datos.destino);
     const textoResultado = `${resultado.toExponential(5)} ${datos.destino}`;
     this.vista.mostrarResultadoConversion(textoResultado);
@@ -54,16 +58,16 @@ class ControladorCargas {
 
   actualizarVistaCompleta = () => {
     const cargas = this.modelo.obtenerCargas();
-    const statsGlobales = this.modelo.obtenerEstadisticasGlobales();
-    const statsSeleccion = this.modelo.obtenerEstadisticasSeleccionadas();
+    const numSeleccionadas = this.modelo.obtenerCargasSeleccionadas().length;
     
     this.vista.actualizarListaCargas(
         cargas, 
         this.handleSeleccionarCarga, 
         this.handleEliminarCarga
     );
-    this.vista.mostrarEstadisticasGlobales(statsGlobales);
-    this.vista.mostrarCalculoSeleccion(statsSeleccion);
+
+    this.vista.renderizarPanelCalculo(numSeleccionadas, this.handleCalcularCampo);
+    this.vista.mostrarResultadosCampo(null);
   }
 }
 
