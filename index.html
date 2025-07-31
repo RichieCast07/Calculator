@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Calculadora</title>
+  <title>Calculadora de Campo Eléctrico (Hayt & Buck)</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    .charge-item, .panel-anim { animation: slideIn 0.3s ease-out; }
+    .charge-item, .panel-anim, .result-item { animation: slideIn 0.3s ease-out; }
     @keyframes slideIn {
       from { opacity: 0; transform: translateY(-10px); }
       to { opacity: 1; transform: translateY(0); }
@@ -22,21 +22,20 @@
       from { opacity: 1; transform: translate(0, 0); }
       to { opacity: 0; transform: translate(100%, -10px); }
     }
+    .math-symbol { font-family: 'Times New Roman', serif; font-style: italic; }
   </style>
 </head>
-<body class="bg-gray-50 min-h-screen p-4 font-sans">
+<body class="bg-gray-100 min-h-screen p-4 font-sans">
   
   <div id="notification-container" class="fixed top-4 right-4 z-50 space-y-2"></div>
   
   <div class="max-w-5xl mx-auto">
-    <h1 class="text-4xl font-bold text-center text-indigo-800 mb-8">
-      Calculadora de Campo Eléctrico y Conversor
-    </h1>
+    <h1 class="text-4xl font-bold text-center text-indigo-800 mb-2">Calculadora de Campo Eléctrico</h1>
 
     <div class="grid lg:grid-cols-2 gap-8">
       <div class="space-y-6">
         <div class="bg-white rounded-2xl shadow-lg p-6">
-          <h2 class="text-2xl font-semibold text-gray-800 mb-4">Agregar Carga Fuente</h2>
+          <h2 class="text-2xl font-semibold text-gray-800 mb-4">Agregar Carga Fuente (<span class="math-symbol">Q</span>)</h2>
           <div class="space-y-4">
             <div class="grid grid-cols-2 gap-4">
               <div>
@@ -44,17 +43,17 @@
                 <input type="number" step="any" id="nuevaCarga" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500" placeholder="Ej: 5.2" />
               </div>
               <div>
-                <label for="unidadCarga" class="block text-sm font-medium text-gray-700 mb-1">Unidad Carga</label>
+                <label for="unidadCarga" class="block text-sm font-medium text-gray-700 mb-1">Unidad</label>
                 <select id="unidadCarga" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
                   <option value="C">C</option><option value="mC">mC</option><option value="μC" selected>μC</option><option value="nC">nC</option><option value="pC">pC</option>
                 </select>
               </div>
             </div>
             <div class="grid grid-cols-4 gap-4">
-              <div class="col-span-1"><label for="posX" class="block text-sm font-medium text-gray-700 mb-1">X</label><input type="number" step="any" id="posX" class="w-full px-3 py-2 border border-gray-300 rounded-lg" value="0"/></div>
-              <div class="col-span-1"><label for="posY" class="block text-sm font-medium text-gray-700 mb-1">Y</label><input type="number" step="any" id="posY" class="w-full px-3 py-2 border border-gray-300 rounded-lg" value="0"/></div>
-              <div class="col-span-1"><label for="posZ" class="block text-sm font-medium text-gray-700 mb-1">Z</label><input type="number" step="any" id="posZ" class="w-full px-3 py-2 border border-gray-300 rounded-lg" value="0"/></div>
-              <div class="col-span-1"><label for="unidadPosicion" class="block text-sm font-medium text-gray-700 mb-1">Unidad</label><select id="unidadPosicion" class="w-full px-3 py-2 border border-gray-300 rounded-lg"><option value="m">m</option><option value="cm" selected>cm</option><option value="mm">mm</option></select></div>
+              <div><label for="posX" class="block text-sm font-medium text-gray-700 mb-1">X</label><input type="number" step="any" id="posX" class="w-full px-3 py-2 border border-gray-300 rounded-lg" value="0"/></div>
+              <div><label for="posY" class="block text-sm font-medium text-gray-700 mb-1">Y</label><input type="number" step="any" id="posY" class="w-full px-3 py-2 border border-gray-300 rounded-lg" value="0"/></div>
+              <div><label for="posZ" class="block text-sm font-medium text-gray-700 mb-1">Z</label><input type="number" step="any" id="posZ" class="w-full px-3 py-2 border border-gray-300 rounded-lg" value="0"/></div>
+              <div><label for="unidadPosicion" class="block text-sm font-medium text-gray-700 mb-1">Unidad</label><select id="unidadPosicion" class="w-full px-3 py-2 border border-gray-300 rounded-lg"><option value="m">m</option><option value="cm" selected>cm</option><option value="mm">mm</option></select></div>
             </div>
           </div>
           <button id="agregarCarga" class="mt-4 w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2 px-4 rounded-lg font-semibold transition-colors">Agregar Carga</button>
@@ -62,41 +61,29 @@
 
         <div class="bg-white rounded-2xl shadow-lg p-6">
           <div class="flex justify-between items-center mb-3">
-            <h2 class="text-2xl font-semibold text-gray-800">Cargas Fuente</h2>
+            <h2 class="text-2xl font-semibold text-gray-800">Cargas Fuente Agregadas</h2>
             <button id="limpiarTodo" title="Eliminar todas las cargas" class="text-sm bg-red-100 text-red-700 hover:bg-red-200 px-3 py-1 rounded-md transition-colors">Limpiar</button>
           </div>
-          <p class="text-xs text-gray-500 mb-3">Selecciona las cargas que generarán el campo eléctrico.</p>
+          <p class="text-xs text-gray-500 mb-3">Selecciona las cargas que contribuirán al cálculo del campo.</p>
           <div id="listaCargas" class="space-y-2 max-h-80 overflow-y-auto p-1"></div>
         </div>
       </div>
 
       <div class="space-y-6">
         <div class="bg-white rounded-2xl shadow-lg p-6">
-          <h2 class="text-2xl font-semibold text-gray-800 mb-4">Panel de Cálculo</h2>
+          <h2 class="text-2xl font-semibold text-gray-800 mb-4">Cálculo del Campo Eléctrico (<span class="math-symbol">E</span>)</h2>
           <div id="panelCalculo" class="space-y-4"></div>
         </div>
         
         <div class="bg-white rounded-2xl shadow-lg p-6">
           <h2 class="text-2xl font-semibold text-gray-800 mb-4">Conversor de Unidades</h2>
           <div class="space-y-2">
-            <input type="number" step="any" id="valorConvertir" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500" placeholder="Escribe un valor a convertir" />
+            <input type="number" step="any" id="valorConvertir" class="w-full px-3 py-2 border border-gray-300 rounded-lg" placeholder="Valor a convertir" />
             <div class="grid grid-cols-2 gap-2 items-center">
-              <div>
-                <label for="unidadOrigen" class="block text-sm font-medium text-gray-700 mb-1">De:</label>
-                <select id="unidadOrigen" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
-                  <option value="C">C</option><option value="mC">mC</option><option value="μC" selected>μC</option><option value="nC">nC</option><option value="pC">pC</option>
-                </select>
-              </div>
-              <div>
-                <label for="unidadDestino" class="block text-sm font-medium text-gray-700 mb-1">A:</label>
-                <select id="unidadDestino" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500">
-                  <option value="C">C</option><option value="mC">mC</option><option value="μC">μC</option><option value="nC" selected>nC</option><option value="pC">pC</option>
-                </select>
-              </div>
+              <div><label for="unidadOrigen" class="block text-sm font-medium text-gray-700 mb-1">De:</label><select id="unidadOrigen" class="w-full px-3 py-2 border border-gray-300 rounded-lg"><option value="C">C</option><option value="μC" selected>μC</option><option value="nC">nC</option></select></div>
+              <div><label for="unidadDestino" class="block text-sm font-medium text-gray-700 mb-1">A:</label><select id="unidadDestino" class="w-full px-3 py-2 border border-gray-300 rounded-lg"><option value="C">C</option><option value="μC">μC</option><option value="nC" selected>nC</option></select></div>
             </div>
-            <div id="resultadoConversion" class="mt-4 p-4 bg-gray-100 rounded-lg text-center">
-              <span class="text-gray-500">El resultado aparecerá aquí</span>
-            </div>
+            <div id="resultadoConversion" class="mt-4 p-4 bg-gray-100 rounded-lg text-center"><span class="text-gray-500">Resultado...</span></div>
           </div>
         </div>
       </div>
