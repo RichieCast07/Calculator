@@ -2,7 +2,7 @@ class ModeloCargas {
   constructor() {
     this.cargas = [];
     this.nextId = 0;
-    this.k = 8.9875517923e9; // Constante de Coulomb N·m²/C²
+    this.k = 8.9875517923e9; 
     this.factoresCarga = { 'C': 1, 'mC': 1e-3, 'μC': 1e-6, 'nC': 1e-9, 'pC': 1e-12 };
     this.factoresDistancia = { 'm': 1, 'cm': 1e-2, 'mm': 1e-3 };
   }
@@ -14,7 +14,7 @@ class ModeloCargas {
   }
 
   agregarCarga(valor, unidadCarga, x, y, z, unidadPos) {
-    const nuevaCarga = {
+    this.cargas.push({
       id: this.nextId++,
       valorOriginal: valor,
       unidadOriginal: unidadCarga,
@@ -26,13 +26,8 @@ class ModeloCargas {
         y: this.convertirUnidad(y, this.factoresDistancia, unidadPos, 'm'),
         z: this.convertirUnidad(z, this.factoresDistancia, unidadPos, 'm'),
       },
-      isSelected: true, // Por defecto, la nueva carga se selecciona para el cálculo
-    };
-    this.cargas.push(nuevaCarga);
-  }
-
-  eliminarCarga(id) {
-    this.cargas = this.cargas.filter(c => c.id !== id);
+      isSelected: true,
+    });
   }
 
   toggleSeleccionCarga(id) {
@@ -40,52 +35,67 @@ class ModeloCargas {
     if (carga) carga.isSelected = !carga.isSelected;
   }
   
-  obtenerCargasSeleccionadas() {
-      return this.cargas.filter(c => c.isSelected);
-  }
+  obtenerCargasSeleccionadas = () => this.cargas.filter(c => c.isSelected);
   
   calcularCampoElectricoResultante(puntoDeCalculo) {
     const cargasSeleccionadas = this.obtenerCargasSeleccionadas();
     let campoTotal = { x: 0, y: 0, z: 0 };
+    const contribuciones = [];
 
-    for (const carga of cargasSeleccionadas) {
+    for (const [index, carga] of cargasSeleccionadas.entries()) {
       const vectorR = {
         x: puntoDeCalculo.x - carga.posEnMetros.x,
         y: puntoDeCalculo.y - carga.posEnMetros.y,
         z: puntoDeCalculo.z - carga.posEnMetros.z,
       };
 
-      const distanciaR = Math.sqrt(vectorR.x**2 + vectorR.y**2 + vectorR.z**2);
-      if (distanciaR < 1e-9) continue; // Si el punto es la misma carga, su campo es infinito. Lo omitimos.
+      const magnitudR = Math.sqrt(vectorR.x**2 + vectorR.y**2 + vectorR.z**2);
+      if (magnitudR < 1e-12) continue;
       
-      const magnitudR_cubed = distanciaR**3;
-      const factor = (this.k * carga.valorEnCoulombs) / magnitudR_cubed;
+      const unitarioR = {
+        x: vectorR.x / magnitudR,
+        y: vectorR.y / magnitudR,
+        z: vectorR.z / magnitudR
+      };
+      
+      const magnitudE = (this.k * carga.valorEnCoulombs) / (magnitudR**2);
 
-      campoTotal.x += factor * vectorR.x;
-      campoTotal.y += factor * vectorR.y;
-      campoTotal.z += factor * vectorR.z;
+      const campoIndividual = {
+        x: magnitudE * unitarioR.x,
+        y: magnitudE * unitarioR.y,
+        z: magnitudE * unitarioR.z
+      };
+      
+      campoTotal.x += campoIndividual.x;
+      campoTotal.y += campoIndividual.y;
+      campoTotal.z += campoIndividual.z;
+
+      contribuciones.push({
+          cargaIndex: this.cargas.indexOf(carga) + 1,
+          vectorR,
+          magnitudR,
+          campoIndividual
+      });
     }
 
-    const magnitudCampo = Math.sqrt(campoTotal.x**2 + campoTotal.y**2 + campoTotal.z**2);
-    let vectorUnitario = { x: 0, y: 0, z: 0 };
-
-    if (magnitudCampo > 1e-9) {
-      vectorUnitario = {
-        x: campoTotal.x / magnitudCampo,
-        y: campoTotal.y / magnitudCampo,
-        z: campoTotal.z / magnitudCampo,
+    const magnitudTotal = Math.sqrt(campoTotal.x**2 + campoTotal.y**2 + campoTotal.z**2);
+    let unitarioTotal = { x: 0, y: 0, z: 0 };
+    if (magnitudTotal > 1e-12) {
+      unitarioTotal = {
+        x: campoTotal.x / magnitudTotal,
+        y: campoTotal.y / magnitudTotal,
+        z: campoTotal.z / magnitudTotal,
       };
     }
 
     return {
       campoVector: campoTotal,
-      magnitud: magnitudCampo,
-      unitario: vectorUnitario,
-      netCharge: cargasSeleccionadas.reduce((sum, c) => sum + c.valorEnCoulombs, 0),
-      count: cargasSeleccionadas.length
+      magnitud: magnitudTotal,
+      unitario: unitarioTotal,
+      contribuciones
     };
   }
-
-  obtenerCargas() { return [...this.cargas]; }
+  
+  obtenerCargas = () => [...this.cargas];
   limpiarCargas() { this.cargas = []; this.nextId = 0; }
 }
